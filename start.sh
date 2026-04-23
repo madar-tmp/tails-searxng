@@ -1,11 +1,11 @@
 #!/bin/sh
 
 # Create the state directory so Tailscale doesn't throw a missing folder warning
-mkdir -p /var/lib/tailscale
+mkdir -p /var/lib/tailscale /var/run/tailscale
 
 echo "Starting Tailscale daemon in userspace mode..."
 # Run tailscaled in the background with userspace networking
-tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
+/usr/local/bin/tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
 
 # Give the daemon 5 seconds to initialize
 sleep 5
@@ -14,7 +14,7 @@ sleep 5
 if [ -n "$TAILSCALE_AUTHKEY" ]; then
     echo "Authenticating Tailscale node..."
     # Using --accept-dns=false ensures we don't break SearXNG's internal routing
-    tailscale up --authkey="${TAILSCALE_AUTHKEY}" --ssh --hostname=render-searxng --accept-dns=false
+    /usr/local/bin/tailscale up --authkey="${TAILSCALE_AUTHKEY}" --ssh --hostname=render-searxng --accept-dns=false
 else
     echo "CRITICAL ERROR: TAILSCALE_AUTHKEY environment variable is missing!"
     exit 1
