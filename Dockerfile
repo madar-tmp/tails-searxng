@@ -1,7 +1,7 @@
 # Stage 1: Pull the official Tailscale image to extract the binaries
 FROM tailscale/tailscale:latest AS tailscale
 
-# Stage 2: Build the final Debian-based image (Upgraded to Bookworm for Python 3.11)
+# Stage 2: Build the final Debian-based image (Bookworm / Python 3.11)
 FROM debian:bookworm-slim
 
 # Prevent interactive prompts during apt installations
@@ -40,12 +40,12 @@ COPY --from=tailscale /usr/local/bin/tailscale /usr/local/bin/tailscale
 # Ensure Tailscale state directories exist
 RUN mkdir -p /var/run/tailscale /var/cache/tailscale /var/lib/tailscale
 
-# 3. Clone and install SearXNG from source
+# 3. Clone and install SearXNG from source (Fixed dependencies and isolation)
 WORKDIR /usr/local/searxng
 RUN git clone https://github.com/searxng/searxng.git . \
     && pip3 install --no-cache-dir -U pip setuptools wheel msgspec \
     && pip3 install --no-cache-dir -r requirements.txt \
-    && pip3 install --no-cache-dir -e .
+    && pip3 install --no-build-isolation --no-cache-dir -e .
 
 # 4. Set required SearXNG environment variables
 ENV SEARXNG_PORT=8080
