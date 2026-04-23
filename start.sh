@@ -4,7 +4,8 @@
 mkdir -p /var/lib/tailscale /var/run/tailscale
 
 echo "Starting Tailscale daemon in userspace mode..."
-/usr/local/bin/tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
+# Removed the SOCKS5 server flag to stop Render's health checks from triggering log spam
+/usr/local/bin/tailscaled --tun=userspace-networking &
 
 # Give the daemon 5 seconds to initialize
 sleep 5
@@ -23,14 +24,14 @@ echo "Securing instance: Starting dummy server for Render, isolating SearXNG to 
 mkdir -p /tmp/dummy_web
 echo "<html><body><h1>Private Tailscale Instance</h1><p>Access via Tailnet only.</p></body></html>" > /tmp/dummy_web/index.html
 
-# We run a dummy web server in the background on Render's expected port. 
-# This satisfies Render's health checks so the container isn't killed, but exposes no SearXNG data.
+# We run a dummy web server in the background on Render's expected port.
 (cd /tmp/dummy_web && python3 -m http.server ${PORT:-10000}) &
 
-# 4. Lock SearXNG to Localhost (Private)
-# Forcing the bind address to 127.0.0.1 means the public internet CANNOT reach it.
-export SEARXNG_BIND_ADDRESS="127.0.0.1"
-export GRANIAN_ADDRESS="127.0.0.1"
+# 4. Bind SearXNG to 0.0.0.0 so Tailscale can correctly route to it
+# Note: This is SAFE. Render ONLY exposes the $PORT (10000) to the public internet.
+# Port 8080 remains completely inaccessible from the outside, but Tailscale can reach it locally!
+export SEARXNG_BIND_ADDRESS="0.0.0.0"
+export GRANIAN_ADDRESS="0.0.0.0"
 export SEARXNG_PORT="8080"
 export GRANIAN_PORT="8080"
 
@@ -39,7 +40,6 @@ echo "Locating native SearXNG entrypoint..."
 SEARXNG_ENTRYPOINT=$(find / -type f \( -name "docker-entrypoint.sh" -o -name "entrypoint.sh" \) 2>/dev/null | grep -i "searx" | head -n 1)
 
 if [ -z "$SEARXNG_ENTRYPOINT" ]; then
-    # Fallback if the above search misses
     SEARXNG_ENTRYPOINT=$(find /usr -type f -name "entrypoint.sh" 2>/dev/null | head -n 1)
 fi
 
