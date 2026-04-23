@@ -35,6 +35,6 @@ export GRANIAN_ADDRESS="0.0.0.0"
 export SEARXNG_PORT="8080"
 export GRANIAN_PORT="8080"
 
-# 5. Launch SearXNG natively using Python (Corrected for Debian source build)
+# 5. Launch SearXNG natively using Python
 echo "Starting SearXNG webapp..."
 exec python3 -m searx.webapp
