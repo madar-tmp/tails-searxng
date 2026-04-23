@@ -1,6 +1,6 @@
 # Stage 1: Pull the official Tailscale image to extract the binaries
 FROM tailscale/tailscale:latest AS tailscale
-
+# Perfect
 # Stage 2: Build the final SearXNG image
 FROM docker.io/searxng/searxng:latest
 
