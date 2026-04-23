@@ -37,10 +37,11 @@ COPY --from=tailscale /usr/local/bin/tailscale /usr/local/bin/tailscale
 # Ensure Tailscale state directories exist
 RUN mkdir -p /var/run/tailscale /var/cache/tailscale /var/lib/tailscale
 
-# 3. Clone and install SearXNG from source
+# 3. Clone and install SearXNG from source (Fixed dependency order)
 WORKDIR /usr/local/searxng
 RUN git clone https://github.com/searxng/searxng.git . \
-    && pip3 install --no-cache-dir -U pip setuptools wheel \
+    && pip3 install --no-cache-dir -U pip setuptools wheel msgspec \
+    && pip3 install --no-cache-dir -r requirements.txt \
     && pip3 install --no-cache-dir -e .
 
 # 4. Set required SearXNG environment variables
